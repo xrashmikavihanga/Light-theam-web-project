@@ -147,7 +147,7 @@ $usersResult = $conn->query("
     <title>Admin Dashboard - Control Panel</title>
     <link rel="stylesheet" href="./styles/style.css">
 </head>
-<body class="dashboard-body">
+<body class="dashboard-body admin-body">
 
 <div class="dashboard-wrapper">
     

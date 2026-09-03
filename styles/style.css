@@ -548,8 +548,6 @@ body.dashboard-body {
     display: block;
 }
 
-}
-
 .contact-panel {
     padding: 28px;
     border-radius: 24px;
@@ -1142,4 +1140,207 @@ body.dashboard-body .comment-input {
     padding: 40px;
     text-align: center;
     color: #64748b;
+}
+
+/* Light mode */
+body:not(.auth-body):not(.dashboard-body) {
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    color: #0f172a;
+}
+
+.auth-body,
+body.dashboard-body {
+    background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 55%, #ecfdf5 100%);
+    color: #0f172a;
+}
+
+body.admin-body .main-content {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+body.admin-body .sidebar {
+    background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+}
+
+body.admin-body .stat-card,
+body.admin-body .content-card {
+    background: #ffffff;
+}
+
+body.admin-body .card-header,
+body.admin-body .styled-table th {
+    background: #f8fafc;
+}
+
+body.admin-body .styled-table td {
+    color: #334155;
+}
+
+body.admin-body .styled-table tbody tr:hover {
+    background-color: #f1f5f9;
+}
+
+.auth-visual {
+    background: rgba(255, 255, 255, 0.88);
+    border-color: rgba(148, 163, 184, 0.3);
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.12);
+}
+
+.auth-visual h1,
+.auth-visual p,
+.feature-item,
+.brand-title,
+.user-name,
+.page-title,
+.card-heading,
+.section-title,
+.post-title,
+.card-header h3,
+.stat-value {
+    color: #0f172a;
+}
+
+.auth-visual p,
+.feature-item,
+.panel-description,
+.page-subtitle,
+.team-card p,
+.contact-item,
+.post-body,
+.file-upload-filename {
+    color: #475569;
+}
+
+.main-content {
+    background: rgba(255, 255, 255, 0.78);
+    border-color: rgba(148, 163, 184, 0.28);
+}
+
+.sidebar {
+    background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
+    border-right-color: rgba(148, 163, 184, 0.3);
+    box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
+}
+
+.brand-subtitle,
+.stat-title,
+.styled-table th,
+.post-meta,
+.comments-heading,
+.form-disclaimer,
+.empty-feed {
+    color: #64748b;
+}
+
+.user-profile {
+    border-top-color: #cbd5e1;
+}
+
+.team-card,
+.contact-panel,
+.content-card,
+.stat-card {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(148, 163, 184, 0.28);
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+}
+
+.welcome-banner {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1e3a8a;
+}
+
+.card-header,
+.styled-table th {
+    background: #f8fafc;
+}
+
+.styled-table td {
+    color: #334155;
+    border-bottom-color: #e2e8f0;
+}
+
+.styled-table tbody tr:hover {
+    background-color: #f1f5f9;
+}
+
+.styled-select,
+.form-input,
+.form-textarea,
+.form-file,
+.comment-input,
+select,
+.form-group input {
+    background: #ffffff;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+body.dashboard-body .form-group label {
+    color: #334155;
+}
+
+body.dashboard-body .form-group input,
+body.dashboard-body .form-group textarea,
+body.dashboard-body .form-group select,
+body.dashboard-body .form-input,
+body.dashboard-body .form-textarea,
+body.dashboard-body .styled-select,
+body.dashboard-body .comment-input {
+    color: #0f172a;
+}
+
+body.dashboard-body .form-input::placeholder,
+body.dashboard-body .form-textarea::placeholder,
+body.dashboard-body .comment-input::placeholder {
+    color: #64748b;
+    opacity: 1;
+}
+
+body.dashboard-body .form-input:focus,
+body.dashboard-body .form-textarea:focus {
+    background: #ffffff;
+    border-color: #2563eb;
+}
+
+.styled-select option {
+    background: #ffffff;
+    color: #0f172a;
+}
+
+.post-create-card {
+    background: linear-gradient(180deg, #f8fbff, #f0fdf4);
+    border-color: #dbeafe;
+}
+
+.file-upload-button,
+.sidebar-link,
+.tab-button {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+}
+
+.tab-button.active {
+    color: #ffffff;
+}
+
+.tab-button:hover {
+    color: #1d4ed8;
+    background: #dbeafe;
+}
+
+.comment-card {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.comment-text {
+    color: #334155;
+}
+
+.post-divider,
+hr {
+    border-top-color: #cbd5e1;
 }

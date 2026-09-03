@@ -205,7 +205,7 @@ if (!$postsResult) {
         </div>
 
         <div class="welcome-banner">
-            <span>👋</span>
+            
             <div>
                 Welcome to your dashboard. Create a new post on the left, and browse verified alerts on the right.
             </div>
@@ -331,7 +331,7 @@ if (!$postsResult) {
                     <p class="panel-description">Submit a new update for admin review. Your post will be published after approval.</p>
                 </div>
                 <div class="card-body">
-                    <form action="homepage.php" method="POST" enctype="multipart/form-data" class="post-create-card">
+                    <form action="homepage.php" method="POST" class="post-create-card">
                         <input type="hidden" name="action_create_post" value="1">
 
                         <div class="form-row">
@@ -354,14 +354,6 @@ if (!$postsResult) {
                             <div class="form-group half-width">
                                 <label for="location">Location</label>
                                 <input type="text" name="location" id="location" placeholder="Optional: e.g., Building A, Main Gate" class="form-input" value="<?php echo htmlspecialchars($_POST['location'] ?? ''); ?>">
-                            </div>
-                            <div class="form-group half-width">
-                                <label for="image">Attach Photo (optional)</label>
-                                <label class="file-upload">
-                                    <input type="file" name="image" id="image" accept="image/*" class="form-file">
-                                    <span class="file-upload-button">Choose file</span>
-                                    <span class="file-upload-filename" id="image-filename">No file chosen</span>
-                                </label>
                             </div>
                         </div>
 
@@ -396,15 +388,6 @@ if (!$postsResult) {
         });
     });
 
-    // Update filename display for custom file upload
-    const imageInput = document.getElementById('image');
-    const imageName = document.getElementById('image-filename');
-    if (imageInput && imageName) {
-        imageInput.addEventListener('change', (e) => {
-            const f = e.target.files && e.target.files[0];
-            imageName.textContent = f ? f.name : 'No file chosen';
-        });
-    }
 </script>
 </body>
 </html>
