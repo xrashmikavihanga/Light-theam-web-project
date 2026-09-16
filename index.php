@@ -3,14 +3,6 @@ session_start();
 include('connection.php');
 
 $errorMsg = '';
-$successMsg = '';
-$redirectTarget = '';
-
-// Track whether the user is already logged in
-$alreadyLoggedIn = false;
-if (isset($_SESSION['userId'])) {
-    $alreadyLoggedIn = true;
-}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $userName = trim($_POST['userName'] ?? '');
@@ -19,27 +11,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($userName) || empty($password)) {
         $errorMsg = "Please enter both username and password.";
     } else {
-        // Fetch user record
+        // 1. Search the user with prepare statments
         $stmt = $conn->prepare("SELECT userId, userName, password, role FROM users WHERE userName = ?");
         $stmt->bind_param("s", $userName);
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($result && $row = $result->fetch_assoc()) {
-            // Verify hashed password
+            //check the password 
             if (password_verify($password, $row['password'])) {
-                session_regenerate_id(true);
-
-                // Store user session data
+                
+                // save the data for the dashboard controls
                 $_SESSION['userId'] = $row['userId'];
                 $_SESSION['userName'] = $row['userName'];
-                $_SESSION['role'] = $row['role'] ?? 'user';
+                $_SESSION['role'] = $row['role'];
 
-                $role = $_SESSION['role'] ?? 'user';
-                $redirectTarget = $role === 'admin' ? 'admin.php' : 'homepage.php';
-                $successMsg = $role === 'admin'
-                    ? "Login successful. Redirecting to admin dashboard..."
-                    : "Login successful. Redirecting to homepage...";
+                // detect the user roal and transfer them in to specific pages
+                if ($row['role'] === 'admin') {
+                    header("Location: admin.php");
+                } else {
+                    header("Location: homepage.php");
+                }
+                exit();
+
             } else {
                 $errorMsg = "Invalid username or password.";
             }
@@ -82,10 +76,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <hr>
 
-                <?php if (!empty($successMsg)): ?>
-                    <div class="success-message"><?php echo htmlspecialchars($successMsg); ?></div>
-                <?php endif; ?>
-
                 <?php if (!empty($errorMsg)): ?>
                     <div class="error-message"><?php echo htmlspecialchars($errorMsg); ?></div>
                 <?php endif; ?>
@@ -107,12 +97,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </section>
     </div>
 
-    <?php if (!empty($successMsg) && !empty($redirectTarget)): ?>
-        <script>
-            setTimeout(() => {
-                window.location.href = '<?php echo htmlspecialchars($redirectTarget); ?>';
-            }, 1500);
-        </script>
-    <?php endif; ?>
 </body>
 </html>

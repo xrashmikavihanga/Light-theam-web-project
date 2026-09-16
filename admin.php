@@ -1,94 +1,43 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 session_start();
 require_once 'connection.php';
 
-// 1. Session & Role Protection
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    header("Location: index.php");
-    exit();
-}
-
-// 2. Action Handlers (Form Submissions)
+// Form Submissions (Update Status / Delete Post / Delete User)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    
-    // Disable mysqli strict exceptions temporarily so missing column fallbacks don't crash PHP
-    $driver = new mysqli_driver();
-    $driver->report_mode = MYSQLI_REPORT_OFF;
+    $action = $_POST['action'] ?? '';
 
-    // Update Post Status
-    if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
+    // 1. Post Status Update 
+    if ($action === 'update_status') {
         $postId = intval($_POST['postId']);
         $newStatus = $_POST['status'];
         
         $stmt = $conn->prepare("UPDATE posts SET status = ? WHERE postId = ?");
-        if (!$stmt) {
-            $stmt = $conn->prepare("UPDATE posts SET status = ? WHERE id = ?");
-        }
-        if (!$stmt) {
-            $stmt = $conn->prepare("UPDATE posts SET status = ? WHERE post_id = ?");
-        }
-
-        if ($stmt) {
-            $stmt->bind_param("si", $newStatus, $postId);
-            $stmt->execute();
-            $stmt->close();
-        }
-    }
-    
-    // Direct Quick Approve
-    if (isset($_POST['action']) && $_POST['action'] === 'approve_post') {
-        $postId = intval($_POST['postId']);
-        
-        $stmt = $conn->prepare("UPDATE posts SET status = 'approved' WHERE postId = ?");
-        if (!$stmt) {
-            $stmt = $conn->prepare("UPDATE posts SET status = 'approved' WHERE id = ?");
-        }
-        if (!$stmt) {
-            $stmt = $conn->prepare("UPDATE posts SET status = 'approved' WHERE post_id = ?");
-        }
-
-        if ($stmt) {
-            $stmt->bind_param("i", $postId);
-            $stmt->execute();
-            $stmt->close();
-        }
+        $stmt->bind_param("si", $newStatus, $postId);
+        $stmt->execute();
+        $stmt->close();
     }
 
-    // Delete Post
-    if (isset($_POST['action']) && $_POST['action'] === 'delete_post') {
+    // 2. Delete a Post
+    if ($action === 'delete_post') {
         $postId = intval($_POST['postId']);
         
         $stmt = $conn->prepare("DELETE FROM posts WHERE postId = ?");
-        if (!$stmt) {
-            $stmt = $conn->prepare("DELETE FROM posts WHERE id = ?");
-        }
-        if (!$stmt) {
-            $stmt = $conn->prepare("DELETE FROM posts WHERE post_id = ?");
-        }
+        $stmt->bind_param("i", $postId);
+        $stmt->execute();
+        $stmt->close();
+    }
 
-        if ($stmt) {
-            $stmt->bind_param("i", $postId);
+    // 3. Delete a User
+    if ($action === 'delete_user') {
+        $userId = intval($_POST['userId']);
+        $currentAdminId = $_SESSION['userId'] ?? 0;
+        
+        // Admin cant delete the admin
+        if ($userId != $currentAdminId) {
+            $stmt = $conn->prepare("DELETE FROM users WHERE userId = ?");
+            $stmt->bind_param("i", $userId);
             $stmt->execute();
             $stmt->close();
-        }
-    }
-    
-    // Delete User
-    if (isset($_POST['action']) && $_POST['action'] === 'delete_user') {
-        $userId = intval($_POST['userId']);
-        $currentSessionUser = $_SESSION['user_id'] ?? $_SESSION['userId'] ?? 0;
-        
-        if ($userId != $currentSessionUser) {
-            $stmt = $conn->prepare("DELETE FROM users WHERE userId = ?");
-            if ($stmt) {
-                $stmt->bind_param("i", $userId);
-                $stmt->execute();
-                $stmt->close();
-            }
         }
     }
     
@@ -96,41 +45,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit();
 }
 
-// 3. Fetch Metrics safely
-$totalUsers = 0;
-$totalPosts = 0;
-$pendingPosts = 0;
-$approvedPosts = 0;
+// Count status
+$totalUsers = $conn->query("SELECT COUNT(*) AS count FROM users")->fetch_assoc()['count'] ?? 0;
+$totalPosts = $conn->query("SELECT COUNT(*) AS count FROM posts")->fetch_assoc()['count'] ?? 0;
+$pendingPosts = $conn->query("SELECT COUNT(*) AS count FROM posts WHERE status='pending'")->fetch_assoc()['count'] ?? 0;
+$approvedPosts = $conn->query("SELECT COUNT(*) AS count FROM posts WHERE status='approved'")->fetch_assoc()['count'] ?? 0;
 
-$res1 = $conn->query("SELECT COUNT(*) AS count FROM users");
-if ($res1) $totalUsers = $res1->fetch_assoc()['count'] ?? 0;
-
-$res2 = $conn->query("SELECT COUNT(*) AS count FROM posts");
-if ($res2) $totalPosts = $res2->fetch_assoc()['count'] ?? 0;
-
-$res3 = $conn->query("SELECT COUNT(*) AS count FROM posts WHERE status='pending'");
-if ($res3) $pendingPosts = $res3->fetch_assoc()['count'] ?? 0;
-
-$res4 = $conn->query("SELECT COUNT(*) AS count FROM posts WHERE status='approved'");
-if ($res4) $approvedPosts = $res4->fetch_assoc()['count'] ?? 0;
-
-// 4. Fetch Table Data
+// Posts Table එකට දත්ත ගැනීම
 $postsResult = $conn->query("
     SELECT p.*, u.userName 
     FROM posts p 
     JOIN users u ON p.userId = u.userId 
-    ORDER BY p.status DESC
+    ORDER BY p.postId DESC
 ");
 
-if (!$postsResult) {
-    // Secondary attempt without strict sorting if needed
-    $postsResult = $conn->query("
-        SELECT p.*, u.userName 
-        FROM posts p 
-        JOIN users u ON p.userId = u.userId
-    ");
-}
-
+// Users Table එකට දත්ත ගැනීම
 $usersResult = $conn->query("
     SELECT u.userId, u.userName, u.role, ud.fullName, ud.email, ud.contactNumber 
     FROM users u 
@@ -144,7 +73,7 @@ $usersResult = $conn->query("
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Control Panel</title>
+    <title>Admin Dashboard</title>
     <link rel="stylesheet" href="./styles/style.css">
 </head>
 <body class="dashboard-body admin-body">
@@ -161,9 +90,9 @@ $usersResult = $conn->query("
             </div>
         </div>
         <div class="user-profile">
-            <div class="user-avatar"><?php echo strtoupper(substr($_SESSION['username'] ?? $_SESSION['userName'] ?? 'A', 0, 1)); ?></div>
+            <div class="user-avatar"><?php echo strtoupper(substr($_SESSION['userName'] ?? 'A', 0, 1)); ?></div>
             <div class="user-info">
-                <span class="user-name"><?php echo htmlspecialchars($_SESSION['username'] ?? $_SESSION['userName'] ?? 'Admin'); ?></span>
+                <span class="user-name"><?php echo htmlspecialchars($_SESSION['userName'] ?? 'Admin'); ?></span>
                 <a href="index.php" class="logout-link">Logout</a>
             </div>
         </div>
@@ -202,6 +131,7 @@ $usersResult = $conn->query("
                 <button class="tab-button" data-tab="users">Users</button>
             </div>
 
+            <!-- Posts Tab -->
             <div class="tab-content active" id="posts-tab">
                 <div class="content-card">
                     <div class="card-header">
@@ -214,55 +144,48 @@ $usersResult = $conn->query("
                                     <th>ID</th>
                                     <th>Author</th>
                                     <th>Title & Details</th>
-                                    <th>Content</th>
+                                    <th>Description</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                <!-- Post table render -->
                                 <?php if ($postsResult && $postsResult->num_rows > 0): ?>
                                     <?php while ($post = $postsResult->fetch_assoc()): ?>
-                                        <?php $currentPostId = $post['id'] ?? $post['postId'] ?? $post['post_id'] ?? 0; ?>
                                         <tr>
-                                            <td><span class="id-tag">#<?php echo $currentPostId; ?></span></td>
-                                            <td><strong><?php echo htmlspecialchars($post['userName'] ?? 'User'); ?></strong></td>
+                                            <td><span class="id-tag">#<?php echo $post['postId']; ?></span></td>
+                                            <td><strong><?php echo htmlspecialchars($post['userName']); ?></strong></td>
                                             <td>
-                                                <div><strong><?php echo htmlspecialchars($post['title'] ?? 'Untitled'); ?></strong></div>
+                                                <div><strong><?php echo htmlspecialchars($post['title']); ?></strong></div>
                                                 <?php if (!empty($post['location'])): ?>
                                                     <small style="color: #94a3b8;">📍 <?php echo htmlspecialchars($post['location']); ?></small>
                                                 <?php endif; ?>
                                             </td>
-                                            <td><?php echo htmlspecialchars($post['content'] ?? $post['description'] ?? ''); ?></td>
+                                            <td><?php echo htmlspecialchars($post['description']); ?></td>
                                             <td>
-                                                <span class="status-pill status-<?php echo strtolower($post['status'] ?? 'pending'); ?>">
-                                                    <?php echo strtoupper($post['status'] ?? 'PENDING'); ?>
+                                                <span class="status-pill status-<?php echo strtolower($post['status']); ?>">
+                                                    <?php echo strtoupper($post['status']); ?>
                                                 </span>
                                             </td>
                                             <td>
                                                 <div class="action-flex">
+                                                    <!-- Status Update Form -->
                                                     <form action="admin.php" method="POST">
                                                         <input type="hidden" name="action" value="update_status">
-                                                        <input type="hidden" name="postId" value="<?php echo $currentPostId; ?>">
+                                                        <input type="hidden" name="postId" value="<?php echo $post['postId']; ?>">
                                                         <select name="status" class="styled-select">
-                                                            <option value="pending" <?php if(($post['status'] ?? '') == 'pending') echo 'selected'; ?>>Pending</option>
-                                                            <option value="approved" <?php if(($post['status'] ?? '') == 'approved') echo 'selected'; ?>>Approve</option>
-                                                            <option value="resolved" <?php if(($post['status'] ?? '') == 'resolved') echo 'selected'; ?>>Resolve</option>
-                                                            <option value="rejected" <?php if(($post['status'] ?? '') == 'rejected') echo 'selected'; ?>>Reject</option>
+                                                            <option value="pending" <?php if($post['status'] == 'pending') echo 'selected'; ?>>Pending</option>
+                                                            <option value="approved" <?php if($post['status'] == 'approved') echo 'selected'; ?>>Approve</option>
+                                                            <option value="resolved" <?php if($post['status'] == 'resolved') echo 'selected'; ?>>Resolve</option>
                                                         </select>
                                                         <button type="submit" class="btn btn-save">Save</button>
                                                     </form>
 
-                                                    <?php if (strtolower($post['status'] ?? 'pending') === 'pending'): ?>
-                                                        <form action="admin.php" method="POST">
-                                                            <input type="hidden" name="action" value="approve_post">
-                                                            <input type="hidden" name="postId" value="<?php echo $currentPostId; ?>">
-                                                            <button type="submit" class="btn btn-save">Approve</button>
-                                                        </form>
-                                                    <?php endif; ?>
-
+                                                    <!-- Delete Post Form -->
                                                     <form action="admin.php" method="POST" onsubmit="return confirm('Permanently delete this post?');">
                                                         <input type="hidden" name="action" value="delete_post">
-                                                        <input type="hidden" name="postId" value="<?php echo $currentPostId; ?>">
+                                                        <input type="hidden" name="postId" value="<?php echo $post['postId']; ?>">
                                                         <button type="submit" class="btn btn-danger">Delete</button>
                                                     </form>
                                                 </div>
@@ -278,6 +201,7 @@ $usersResult = $conn->query("
                 </div>
             </div>
 
+            <!-- Users Tab -->
             <div class="tab-content" id="users-tab">
                 <div class="content-card">
                     <div class="card-header">
@@ -308,13 +232,14 @@ $usersResult = $conn->query("
                                             <td><span class="status-pill status-approved"><?php echo strtoupper($user['role']); ?></span></td>
                                             <td>
                                                 <?php if ($user['role'] !== 'admin'): ?>
+                                                    <!-- Delete User Form -->
                                                     <form action="admin.php" method="POST" onsubmit="return confirm('Permanently remove this user account?');">
                                                         <input type="hidden" name="action" value="delete_user">
                                                         <input type="hidden" name="userId" value="<?php echo $user['userId']; ?>">
                                                         <button type="submit" class="btn btn-danger">Remove</button>
                                                     </form>
                                                 <?php else: ?>
-                                                    <span style="color: #64748b; font-size: 12px;">🛡️ System Admin</span>
+                                                    <span style="color: #64748b; font-size: 12px;">System Admin</span>
                                                 <?php endif; ?>
                                             </td>
                                         </tr>
@@ -334,6 +259,7 @@ $usersResult = $conn->query("
 </div>
 
 <script>
+    // Simple Tab Switching Script
     document.querySelectorAll('.tab-button').forEach(button => {
         button.addEventListener('click', () => {
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));

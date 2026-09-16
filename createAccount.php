@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errorMsg = "Please enter a valid email address.";
     } else {
 
-        // Check if username or email already exists
+        // CRUD: READ - check whether the username or email already exists before creating the account
         $checkStmt = $conn->prepare("
             SELECT COUNT(*) as userCount 
             FROM users u 
@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errorMsg = "Username or Email is already registered!";
             } else {
 
-                // 1. Insert into users table
+                // CRUD: CREATE - insert the user login record into the users table
                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
                 $insertUser = $conn->prepare("INSERT INTO users (userName, password) VALUES (?, ?)");
                 $insertUser->bind_param("ss", $userName, $hashedPassword);
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($insertUser->execute()) {
                     $newUserId = $conn->insert_id; // Get generated userId
 
-                    // 2. Insert into userData table (Matching your exact schema)
+                    // CRUD: CREATE - insert the user profile information into the userData table
                     $insertData = $conn->prepare("
                         INSERT INTO userData (userId, fullName, email, university, studentId, contactNumber) 
                         VALUES (?, ?, ?, ?, ?, ?)
@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $sucessMsg = "Account Creation Successful!";
                         $redirect = true;
                     } else {
-                        // Rollback / Cleanup orphan user if profile creation fails
+                        // CRUD: DELETE - clean up the orphan user record if the profile insert fails
                         $conn->query("DELETE FROM users WHERE userId = '$newUserId'");
                         $errorMsg = "Failed to save profile details: " . $insertData->error;
                     }
