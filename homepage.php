@@ -12,11 +12,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_create_post'])
     $title = trim($_POST['title']);
     $content = trim($_POST['content']);
     $location = trim($_POST['location']);
-    $severity = $_POST['severity'];
+   
 
     if (!empty($title) && !empty($content)) {
-        $stmt = $conn->prepare("INSERT INTO posts (userId, title, description, location, severity, status) VALUES (?, ?, ?, ?, ?, 'pending')");
-        $stmt->bind_param("issss", $currentUserId, $title, $content, $location, $severity);
+        $stmt = $conn->prepare("INSERT INTO posts (userId, title, description, location, status) VALUES ( ?, ?, ?, ?, 'pending')");
+        $stmt->bind_param("isss", $currentUserId, $title, $content, $location);
         $stmt->execute();
         $stmt->close();
     }
@@ -172,16 +172,7 @@ $postsResult = $conn->query("
                             <input type="text" name="title" class="form-input" required>
                         </div>
 
-                        <div class="form-group">
-                            <label>Severity</label>
-                            <select name="severity" class="styled-select">
-                                <option value="low">Low</option>
-                                <option value="medium" selected>Medium</option>
-                                <option value="high">High</option>
-                                <option value="critical">Critical</option>
-                            </select>
-                        </div>
-
+                       
                         <div class="form-group">
                             <label>Location</label>
                             <input type="text" name="location" class="form-input">

@@ -6,7 +6,7 @@ $user = 'root';
 $password = '';
 $database = 'dms';
 
-
+//connect the database using OOP Methode
 $conn = new mysqli($serverName, $user, $password, $database);
 
 
