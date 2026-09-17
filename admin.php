@@ -177,7 +177,7 @@ $usersResult = $conn->query("
                                                         <select name="status" class="styled-select">
                                                             <option value="pending" <?php if($post['status'] == 'pending') echo 'selected'; ?>>Pending</option>
                                                             <option value="approved" <?php if($post['status'] == 'approved') echo 'selected'; ?>>Approve</option>
-                                                            <option value="resolved" <?php if($post['status'] == 'resolved') echo 'selected'; ?>>Resolve</option>
+                                                            
                                                         </select>
                                                         <button type="submit" class="btn btn-save">Save</button>
                                                     </form>

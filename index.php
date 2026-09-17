@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $result = $stmt->get_result();
 
-        if ($result && $row = $result->fetch_assoc()) {
+        if ($row = $result->fetch_assoc()) {
             //check the password 
             if (password_verify($password, $row['password'])) {
                 
