@@ -51,7 +51,7 @@ $totalPosts = $conn->query("SELECT COUNT(*) AS count FROM posts")->fetch_assoc()
 $pendingPosts = $conn->query("SELECT COUNT(*) AS count FROM posts WHERE status='pending'")->fetch_assoc()['count'] ?? 0;
 $approvedPosts = $conn->query("SELECT COUNT(*) AS count FROM posts WHERE status='approved'")->fetch_assoc()['count'] ?? 0;
 
-// Posts Table එකට දත්ත ගැනීම
+// Fetch from the post table
 $postsResult = $conn->query("
     SELECT p.*, u.userName 
     FROM posts p 
@@ -59,7 +59,7 @@ $postsResult = $conn->query("
     ORDER BY p.postId DESC
 ");
 
-// Users Table එකට දත්ත ගැනීම
+// Fetch from the user table
 $usersResult = $conn->query("
     SELECT u.userId, u.userName, u.role, ud.fullName, ud.email, ud.contactNumber 
     FROM users u 
